@@ -539,6 +539,11 @@ footer {
   background: #fff;
 }
 
+#sidebar ul li div.dropdown-menu a {
+  color: black;
+  background: #fff;
+}
+
 #sidebar ul li a i {
   margin-right: 0.3rem;
 }
@@ -581,6 +586,10 @@ ul.CTAs a {
 #products_table .btn {
   padding: 0.2rem 0.5rem;
   margin-left: 0.4rem;
+}
+
+.table{
+  margin-top: 8px;
 }
 
 /* Dashboard */

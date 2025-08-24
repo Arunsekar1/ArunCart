@@ -29,6 +29,8 @@ import { loadStripe } from '@stripe/stripe-js'
 import OrderSuccess from './components/cart/OrderSuccess'
 import UserOrders from './components/order/UserOrders'
 import OrderDetail from './components/order/OrderDetail'
+import Dashboard from './components/admin/Dashboard'
+import ProductList from './components/admin/ProductList'
 
 function App() {
   const [stripeApiKey, setStripeApiKey] = useState("")
@@ -71,6 +73,12 @@ function App() {
               {stripeApiKey && <Route path="/payment" element={<ProtectedRoute><Elements stripe={loadStripe(stripeApiKey)} ><Payment /></Elements></ProtectedRoute>} />}
             </Routes>
           </div>
+
+          {/*Admin Routes*/}
+          <Routes>
+            <Route path='/admin/dashboard' element={ <ProtectedRoute isAdmin={true}><Dashboard/></ProtectedRoute> } />
+            <Route path='/admin/products' element={ <ProtectedRoute isAdmin={true}><ProductList/></ProtectedRoute> } />
+          </Routes>
           <Footer />
         </HelmetProvider>
       </>
