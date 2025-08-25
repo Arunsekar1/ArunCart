@@ -19,7 +19,10 @@ import {
   newProductSuccess, 
   productFail, 
   productRequest,
-  productSuccess 
+  productSuccess, 
+  updateProductFail, 
+  updateProductRequest,
+  updateProductSuccess
 } from '../slices/productSlice';
 
 export const getProducts = (keyword, price, category, rating, currentPage) => async (dispatch) => {
@@ -107,5 +110,15 @@ export const deleteProduct = (id) => async (dispatch) => {
     dispatch(deleteProductSuccess())
   } catch (error) {
     dispatch(deleteProductFail(error.response.data.message));
+  }
+}
+
+export const updateProduct = (id, productData) => async (dispatch) => {
+  try {
+    dispatch(updateProductRequest());
+    const { data } = await axios.put(`/api/v1/admin/product/${id}`, productData);
+    dispatch(updateProductSuccess(data))
+  } catch (error) {
+    dispatch(updateProductFail(error.response.data.message));
   }
 }
