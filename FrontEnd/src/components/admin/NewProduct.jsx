@@ -138,7 +138,7 @@ export default function NewProduct() {
                                     <select onChange={e => setCategory(e.target.value)} className="form-control" id="category_field">
                                         <option value="" >Select</option>
                                         {categories.map(category => (
-                                            <option value={category}>{category}</option>
+                                            <option key={category} value={category}>{category}</option>
                                         ))}
                                     </select>
                                 </div>
