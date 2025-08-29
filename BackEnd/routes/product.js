@@ -39,4 +39,4 @@ router.route('/admin/product/:id').delete(isAuthenticatedUser, authorizeRoles('a
 router.route('/admin/product/:id').put(isAuthenticatedUser, authorizeRoles('admin'),upload.array('images'), updateProduct);
 router.route('/admin/reviews').get(isAuthenticatedUser, authorizeRoles('admin'), getProductReviews);
 router.route('/admin/review').delete(isAuthenticatedUser, authorizeRoles('admin'), deleteProductReview);
-module.exports = router
+module.exports = router;

@@ -13,14 +13,16 @@ export default defineConfig({
         secure: false
       }
     },
-     // **This makes SPA routing work**
+    // **This makes SPA routing work**
     fs: {
       strict: false
     }
   },
   build: {
-    rollupOptions: {
-      input: '/index.html'
-    }
+    // rollupOptions: {
+    //   input: '/index.html'
+    // }
+    outDir: 'dist',  // default, can be changed
+    sourcemap: false, // set true if debugging production
   }
 })

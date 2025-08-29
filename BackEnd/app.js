@@ -15,10 +15,18 @@ const auth = require('./routes/auth')
 const order = require('./routes/order')
 const payment = require('./routes/payment')
 
-app.use('/api/v1/',products)
-app.use('/api/v1/',auth)
-app.use('/api/v1/',order)
-app.use('/api/v1/',payment)
+app.use('/api/v1/',products);
+app.use('/api/v1/',auth);
+app.use('/api/v1/',order);
+app.use('/api/v1/',payment);
+
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static(path.join(__dirname, '../FrontEnd/dist')));
+    app.get(/^\/(?!api).*/,(req,res) => {
+        res.sendFile(path.resolve(__dirname,'../FrontEnd/dist/index.html'))
+    })
+}
+
 app.use(errorMiddleware)
 
 module.exports = app;
