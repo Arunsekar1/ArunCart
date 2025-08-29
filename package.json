@@ -6,7 +6,6 @@
   "scripts": {
     "start": "nodemon Backend/index.js",
     "dev": "set NODE_ENV=development&&nodemon Backend/index.js",
-    "prod": "set NODE_ENV=production&&nodemon Backend/index.js",
     "seeder": "node Backend/utils/seeder.js"
   },
   "author": "Arun S",
