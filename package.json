@@ -2,9 +2,9 @@
   "name": "aruncart",
   "version": "1.0.0",
   "description": "Ecommerce using MERN stack",
-  "main": "BackEnd/index.js",
+  "main": "Backend/index.js",
   "scripts": {
-    "start": "nodemon Backend/index.js",
+    "start": "node Backend/index.js",
     "dev": "set NODE_ENV=development&&nodemon Backend/index.js",
     "seeder": "node Backend/utils/seeder.js"
   },
