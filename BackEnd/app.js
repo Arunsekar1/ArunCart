@@ -21,10 +21,10 @@ app.use('/api/v1/',order);
 app.use('/api/v1/',payment);
 
 if(process.env.NODE_ENV === "production"){
-    app.use(express.static(path.join(__dirname, '../FrontEnd/dist')));
+    app.use(express.static(path.join(__dirname, 'dist')));
     app.get(/^\/(?!api).*/,(req,res) => {
-        res.sendFile(path.resolve(__dirname,'../FrontEnd/dist/index.html'))
-    })
+        res.sendFile(path.resolve(__dirname,'dist/index.html'))
+    });
 }
 
 app.use(errorMiddleware)
