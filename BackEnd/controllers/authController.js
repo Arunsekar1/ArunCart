@@ -4,20 +4,31 @@ const sendEmail = require('../utils/email');
 const ErrorHandler = require('../utils/errorHandler');
 const sendToken = require('../utils/jwt');
 const crypto = require('crypto');
+const cloudinary = require('../utils/cloudinary');
+const fs = require('fs');
 
 // Register User - /api/v1/register
 exports.registerUser = catchAsyncError(async (req, res, next) => {
-  const { name, email, password} = req.body;
+  const { name, email, password } = req.body;
 
-  let avatar;
+  let avatar = {
+    local: "",
+    cloud: ""
+  };
 
-  let BASE_URL = process.env.BACKEND_URL;
-  if(process.env.NODE_ENV === "production"){
-    BASE_URL = `${req.protocol}://${req.get('host')}`
-  }
+  let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
 
-  if(req.file){
-    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`
+  if (req.file) {
+    // Local path
+    avatar.local = `${BASE_URL}/uploads/user/${req.file.originalname}`
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "users",
+      width: 150,
+      crop: "scale"
+    });
+    avatar.cloud = result.secure_url;
   }
 
   const user = await User.create({
@@ -78,7 +89,7 @@ exports.forgotPassword = catchAsyncError(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   let BASE_URL = process.env.FRONTEND_URL;
-  if(process.env.NODE_ENV === "production"){
+  if (process.env.NODE_ENV === "production") {
     BASE_URL = `${req.protocol}://${req.get('host')}`
   }
 
@@ -170,17 +181,26 @@ exports.updateUserProfile = catchAsyncError(async (req, res, next) => {
     email: req.body.email,
   };
 
-  let avatar;
-  let BASE_URL = process.env.BACKEND_URL;
-  if(process.env.NODE_ENV === "production"){
-    BASE_URL = `${req.protocol}://${req.get('host')}`
+  let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+
+  if (req.file) {
+    // Local path
+    const avatarLocal = `${BASE_URL}/uploads/user/${req.file.filename}`;
+
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "users",
+      width: 150,
+      crop: "scale"
+    });
+    const avatarCloud = result.secure_url;
+
+    newUserData.avatar = {
+      local: avatarLocal,
+      cloud: avatarCloud
+    };
   }
 
-  if(req.file){
-    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`
-    newUserData = {...newUserData,avatar}
-  }
-  
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true
@@ -230,7 +250,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
     new: true,
-    runValidators:true,
+    runValidators: true,
   });
 
   res.status(200).json({

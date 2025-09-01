@@ -15,7 +15,7 @@ export default function Register() {
     const [avatarPreview, setAvatarPreview] = useState("/images/default_avatar.png")
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, error, isAuthenticated } = useSelector(state => state.authState)
+    const { loading, error, isAuthenticated, user } = useSelector(state => state.authState)
 
     const onChange = (e) => {
         if (e.target.name === 'avatar') {
@@ -44,7 +44,13 @@ export default function Register() {
     }
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && user) {
+             // Update avatarPreview with Cloudinary URL if exists
+            if (user.avatar && user.avatar.cloud) {
+                setAvatarPreview(user.avatar.cloud);
+            } else if (user.avatar && user.avatar.local) {
+                setAvatarPreview(user.avatar.local);
+            }
             navigate('/')
             return
         }
@@ -56,7 +62,7 @@ export default function Register() {
             });
             return
         }
-    }, [error, isAuthenticated, navigate, dispatch])
+    }, [error, isAuthenticated, navigate, dispatch, user])
 
     return (
         <>
