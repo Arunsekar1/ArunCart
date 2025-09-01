@@ -18,10 +18,10 @@ BackEnd/node_modules/
 .env.production.local
 
 # Build outputs
-# dist/
-# build/
-# FrontEnd/build/
-# BackEnd/build/
+dist/
+build/
+FrontEnd/build/
+BackEnd/build/
 
 # Cache
 .cache/
