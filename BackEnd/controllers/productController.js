@@ -45,7 +45,8 @@ exports.newProduct = catchAsyncError(async (req, res, next) => {
         req.files.forEach(file => {
             let url = `${BASE_URL}/uploads/product/${file.originalname}`
             images.push({ image: url })
-        })
+        });
+    }
 
         req.body.images = images;
 
