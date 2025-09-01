@@ -2,6 +2,7 @@ const Product = require('../Models/productModel')
 const ErrorHandler = require('../utils/errorHandler')
 const catchAsyncError = require('../Middlewares/catchAsyncError')
 const ApIFeatures = require('../Middlewares/apiFeatures')
+const cloudinary = require('../utils/cloudinary');
 
 // Get Products
 exports.getProducts = async (req, res, next) => {
@@ -36,16 +37,21 @@ exports.getProducts = async (req, res, next) => {
 exports.newProduct = catchAsyncError(async (req, res, next) => {
     let images = []
 
-    let BASE_URL = process.env.BACKEND_URL;
-    if (process.env.NODE_ENV === "production") {
-        BASE_URL = `${req.protocol}://${req.get('host')}`
-    }
+    let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
 
-    if (req.files.length > 0) {
-        req.files.forEach(file => {
-            let url = `${BASE_URL}/uploads/product/${file.originalname}`
-            images.push({ image: url })
-        })
+    if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+            // Local path
+            images.push({ image: `${BASE_URL}/uploads/product/${file.originalname}` });
+
+            // Cloudinary path
+            const result = await cloudinary.uploader.upload(file.path, {
+                folder: 'products',
+                public_id: `${Date.now()}_${file.originalname}`,
+                resource_type: 'image'
+            });
+            cloudinaryImages.push({ image: result.secure_url });
+        }
     }
 
     req.body.images = images;
@@ -80,23 +86,30 @@ exports.updateProduct = async (req, res, next) => {
     let product = await Product.findById(req.params.id);
 
     // uploading images
-    let images = []
+    let images = [];
+    let cloudinaryImages = [];
 
     // if images not cleared we keep existing images
     if (req.body.imagesCleared === 'false') {
         images = product.images;
+        cloudinaryImages = product.cloudImages || [];
     }
 
-    let BASE_URL = process.env.BACKEND_URL;
-  if(process.env.NODE_ENV === "production"){
-    BASE_URL = `${req.protocol}://${req.get('host')}`
-  }
+    const BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
 
-    if (req.files.length > 0) {
-        req.files.forEach(file => {
-            let url = `${BASE_URL}/uploads/product/${file.originalname}`
-            images.push({ image: url })
-        })
+    if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+            // Local path
+            images.push({ image: `${BASE_URL}/uploads/product/${file.originalname}` });
+
+            // Cloudinary path
+            const result = await cloudinary.uploader.upload(file.path, {
+                folder: 'products',
+                public_id: `${Date.now()}_${file.originalname}`,
+                resource_type: 'image'
+            });
+            cloudinaryImages.push({ image: result.secure_url });
+        }
     }
 
     req.body.images = images;
@@ -107,6 +120,12 @@ exports.updateProduct = async (req, res, next) => {
             message: 'Product not found'
         });
     }
+
+     // Combine both into req.body for update
+    req.body.images = images.map((img, index) => ({
+        local: img.image,
+        cloudinary: cloudinaryImages[index] ? cloudinaryImages[index].image : null
+    }));
 
     product = await Product.findByIdAndUpdate(req.params.id, req.body, {
         new: true,

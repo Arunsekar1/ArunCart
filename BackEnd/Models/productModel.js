@@ -21,9 +21,13 @@ const productSchema = new mongoose.Schema({
     },
     images: [
         {
-            image: {
+            local: {       // Local storage URL
                 type: String,
                 required: true
+            },
+            cloudinary: {  // Cloudinary URL
+                type: String,
+                required: false
             }
         }
     ],

@@ -5,26 +5,37 @@ const ErrorHandler = require('../utils/errorHandler');
 const sendToken = require('../utils/jwt');
 const crypto = require('crypto');
 
+// new implementation
+
+const cloudinary = require('../utils/cloudinary');
+
 // Register User - /api/v1/register
 exports.registerUser = catchAsyncError(async (req, res, next) => {
-  const { name, email, password} = req.body;
+  const { name, email, password } = req.body;
 
-  let avatar;
+  let avatar;           // local path
+  let cloudinaryAvatar; // cloudinary path
 
-  let BASE_URL = process.env.BACKEND_URL;
-  if(process.env.NODE_ENV === "production"){
-    BASE_URL = `${req.protocol}://${req.get('host')}`
-  }
+  if (req.file) {
+    // 1️⃣ Local path
+    const BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`;
 
-  if(req.file){
-    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`
+    // 2️⃣ Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'users',
+      public_id: `${Date.now()}_${req.file.originalname}`,
+      resource_type: 'image'
+    });
+    cloudinaryAvatar = result.secure_url;
   }
 
   const user = await User.create({
     name,
     email,
     password,
-    avatar
+    avatar,
+    cloudinaryAvatar
   });
 
   sendToken(user, 201, res);
@@ -78,7 +89,7 @@ exports.forgotPassword = catchAsyncError(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   let BASE_URL = process.env.FRONTEND_URL;
-  if(process.env.NODE_ENV === "production"){
+  if (process.env.NODE_ENV === "production") {
     BASE_URL = `${req.protocol}://${req.get('host')}`
   }
 
@@ -171,16 +182,27 @@ exports.updateUserProfile = catchAsyncError(async (req, res, next) => {
   };
 
   let avatar;
-  let BASE_URL = process.env.BACKEND_URL;
-  if(process.env.NODE_ENV === "production"){
-    BASE_URL = `${req.protocol}://${req.get('host')}`
+
+  if (req.file) {
+    // 1️⃣ Local path
+    const BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`
+    // 2️⃣ Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'users',
+      public_id: `${Date.now()}_${req.file.originalname}`,
+      resource_type: 'image',
+    });
+    const cloudinaryAvatar = result.secure_url;
+
+    // Add both URLs to user data
+    newUserData = {
+      ...newUserData,
+      avatar: localAvatar,           // optional local URL
+      cloudinaryAvatar,              // optional cloud URL
+    };
   }
 
-  if(req.file){
-    avatar = `${BASE_URL}/uploads/user/${req.file.originalname}`
-    newUserData = {...newUserData,avatar}
-  }
-  
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true
@@ -230,7 +252,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
   const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
     new: true,
-    runValidators:true,
+    runValidators: true,
   });
 
   res.status(200).json({
