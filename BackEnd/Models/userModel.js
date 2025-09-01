@@ -3,7 +3,6 @@ const validator = require('validator');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { type } = require('os');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -24,9 +23,6 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String
-  },
-  cloudinaryAvatar: {
-    type:String
   },
   role: {
     type: String,
