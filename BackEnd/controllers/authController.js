@@ -35,7 +35,10 @@ exports.registerUser = catchAsyncError(async (req, res, next) => {
     name,
     email,
     password,
-    avatar
+    avatar:{
+      local: avatar.local,
+      cloud: avatar.cloud
+    }
   });
 
   sendToken(user, 201, res);
