@@ -34,7 +34,7 @@ export default function Header() {
                     <Dropdown className='d-inline'>
                         <Dropdown.Toggle variant='default text-white pe-5' id='dropdown-basic'>
                             <figure className='avatar avatar-nav'>
-                                <Image width="50px" src={user?.avatar?.cloud || user?.avatar?.local || './images/default_avatar.png'}/>
+                                <Image width="50px" src={user.avatar || './images/default_avatar.png'}/>
                             </figure>
                             <span>{user?.name}</span>
                         </Dropdown.Toggle>
@@ -55,3 +55,5 @@ export default function Header() {
         </nav>
     )
 }
+
+

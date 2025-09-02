@@ -5,7 +5,7 @@
   "main": "BackEnd/index.js",
   "scripts": {
     "start": "node BackEnd/index.js",
-    "dev": "set NODE_ENV=development&&nodemon Backend/index.js",
+    "dev": "set NODE_ENV=development && nodemon BackEnd/index.js",
     "seeder": "node BackEnd/utils/seeder.js"
   },
   "author": "Arun S",

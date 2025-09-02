@@ -7,6 +7,37 @@ const crypto = require('crypto');
 const cloudinary = require('../utils/cloudinary');
 const fs = require('fs');
 
+const flattenAvatar = (user) => {
+  const env = process.env.NODE_ENV || "development";
+
+  let avatarUrl;
+
+  if (env === "production") {
+    // In production, always use Cloudinary
+    avatarUrl = user.avatar.cloud || '/images/default_avatar.png';
+  } else {
+    // In development, use local if available, fallback to Cloudinary
+    avatarUrl = user.avatar.local || user.avatar.cloud || '/images/default_avatar.png';
+  }
+
+  return {
+    ...user._doc,
+    avatar: avatarUrl
+  };
+};
+
+
+// Helper to get BASE_URL
+const getBaseUrl = (req) => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  } else {
+    return `http://127.0.0.1:${process.env.PORT || 7000}`;
+  }
+};
+
+
+
 // Register User - /api/v1/register
 exports.registerUser = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -16,33 +47,35 @@ exports.registerUser = catchAsyncError(async (req, res, next) => {
     cloud: ""
   };
 
-  let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  // const BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  const BASE_URL = getBaseUrl(req);
 
   if (req.file) {
-    // Local path
-    avatar.local = `${BASE_URL}/uploads/user/${req.file.originalname}`
+    // Local URL (for dev)
+    avatar.local = `${BASE_URL}/uploads/user/${req.file.filename}`;
 
-    // Upload to Cloudinary
+    if (process.env.NODE_ENV !== 'production') {
+    // Upload to Cloudinary (for prod)
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "users",
       width: 150,
       crop: "scale"
     });
     avatar.cloud = result.secure_url;
+
+    // Delete temp file
+    fs.unlinkSync(req.file.path);
+  }
   }
 
   const user = await User.create({
     name,
     email,
     password,
-    avatar:{
-      local: avatar.local,
-      cloud: avatar.cloud
-    }
+    avatar
   });
 
   sendToken(user, 201, res);
-
 });
 
 // Login User - /api/v1/login
@@ -153,7 +186,7 @@ exports.getUserProfile = catchAsyncError(async (req, res, next) => {
   }
   res.status(200).json({
     success: true,
-    user
+    user: flattenAvatar(user)
   });
 });
 
@@ -184,7 +217,8 @@ exports.updateUserProfile = catchAsyncError(async (req, res, next) => {
     email: req.body.email,
   };
 
-  let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  // let BASE_URL = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+  const BASE_URL = getBaseUrl(req);
 
   if (req.file) {
     // Local path
@@ -215,7 +249,7 @@ exports.updateUserProfile = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    user
+    user: flattenAvatar(user)
   });
 });
 
@@ -223,9 +257,10 @@ exports.updateUserProfile = catchAsyncError(async (req, res, next) => {
 // Admin: Get All Users - /api/v1/admin/users
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const users = await User.find();
+  const flattenedUsers = users.map(flattenAvatar);
   res.status(200).json({
     success: true,
-    users
+    users: flattenedUsers
   });
 
 });
@@ -238,7 +273,7 @@ exports.getUserDetails = catchAsyncError(async (req, res, next) => {
   }
   res.status(200).json({
     success: true,
-    user
+    user : flattenAvatar(user)
   });
 
 });
@@ -258,7 +293,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    user
+    user: flattenAvatar(user)
   });
 
 });

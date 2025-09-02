@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     local: { type: String, default: "" },   // local server path
-    cloud: { type: String, default: "" }    // Cloudinary URL
+    cloud: { type: String, default: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/v1/default_avatar.png` }    // Cloudinary URL
   },
   role: {
     type: String,
